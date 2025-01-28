@@ -1,9 +1,9 @@
-import './styles.css';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import "./styles.css";
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 // Canvas
-const canvas = document.querySelector('canvas');
+const canvas = document.querySelector("canvas");
 
 // Scene
 const scene = new THREE.Scene();
@@ -17,8 +17,16 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 // Set initial camera position and rotation
-camera.position.set(-0.45470001287689144, 3.782284782004724, -27.744818698957893);
-camera.rotation.set(-3.1193153721818927, -0.017234674190410502, -3.1412086674054494);
+camera.position.set(
+  -0.45470001287689144,
+  3.782284782004724,
+  -27.744818698957893
+);
+camera.rotation.set(
+  -3.1193153721818927,
+  -0.017234674190410502,
+  -3.1412086674054494
+);
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({
@@ -28,11 +36,16 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 
 // GLTF Loader
 const gltfLoader = new GLTFLoader();
-gltfLoader.load('/model/virrtual_museum/hintze_hall.glb', (gltf) => {
-  console.log('Model loaded!', gltf);
+gltfLoader.load("/model/virrtual_museum/hintze_hall.glb", (gltf) => {
+  console.log("Model loaded!", gltf);
   const model = gltf.scene;
   scene.add(model);
 });
+
+window.addEventListener('mouseup', function () {
+  console.log(camera.position)
+  console.log(camera.rotation)
+})
 
 // Key state tracking
 const keys = {
@@ -43,31 +56,43 @@ const keys = {
 };
 
 // Event listeners for keydown and keyup
-window.addEventListener('keydown', (event) => {
+window.addEventListener("keydown", (event) => {
   if (keys.hasOwnProperty(event.key)) {
     keys[event.key] = true;
   }
 });
 
-window.addEventListener('keyup', (event) => {
+window.addEventListener("keyup", (event) => {
   if (keys.hasOwnProperty(event.key)) {
     keys[event.key] = false;
   }
 });
 
 // Mouse movement for camera rotation
-let isMouseDown = false;
-window.addEventListener('mousedown', () => (isMouseDown = true));
-window.addEventListener('mouseup', () => (isMouseDown = false));
-window.addEventListener('mousemove', (event) => {
-  if (isMouseDown) {
-    const sensitivity = 0.002; // Adjust sensitivity for mouse movement
-    camera.rotation.y -= event.movementX * sensitivity; // Rotate horizontally
-    camera.rotation.x -= event.movementY * sensitivity; // Rotate vertically
+const sensitivity = 0.002; // Adjust sensitivity for mouse movement
+const smoothingFactor = 0.1; // Smoothing factor (0 to 1)
+let targetYaw = +994; // Target horizontal rotation
+let targetPitch = 0; // Target vertical rotation
+let currentYaw = 0; // Current horizontal rotation
+let currentPitch = 0; // Current vertical rotation
 
-    // Lock vertical rotation to prevent flipping
-    camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
-  }
+window.addEventListener("mousemove", (event) => {
+  // Update target yaw and pitch based on mouse movement
+  targetYaw -= event.movementX * sensitivity; // Horizontal rotation
+  targetPitch -= event.movementY * sensitivity; // Vertical rotation
+
+  // Lock vertical rotation to prevent flipping
+  targetPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, targetPitch));
+
+  // Smoothly interpolate between current and target rotations
+  currentYaw = THREE.MathUtils.lerp(currentYaw, targetYaw, smoothingFactor);
+  currentPitch = THREE.MathUtils.lerp(currentPitch, targetPitch, smoothingFactor);
+
+  // Update camera rotation using quaternions
+  const quaternion = new THREE.Quaternion();
+  quaternion.setFromEuler(new THREE.Euler(currentPitch, currentYaw, 0, "YXZ"));
+  camera.quaternion.copy(quaternion);
+  //console.log(camera.quaternion)
 });
 
 // Movement speed
@@ -101,7 +126,6 @@ const animate = () => {
 
 // Start the animation loop
 animate();
-
 
 // Functions to move and rotate the camera
 // function cameraMovement(x, y, z) {
