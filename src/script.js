@@ -1,9 +1,6 @@
 import './styles.css';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import * as lilGui from 'lil-gui';
-import gsap from 'gsap';
 
 // Canvas
 const canvas = document.querySelector('canvas');
@@ -13,13 +10,13 @@ const scene = new THREE.Scene();
 
 // Camera
 const camera = new THREE.PerspectiveCamera(
-  45, // Field of View
+  75, // Field of View
   window.innerWidth / window.innerHeight, // Aspect Ratio
   0.1, // Near
   1000 // Far
 );
 
-// Initial position of the camera
+// Set initial camera position and rotation
 camera.position.set(-0.45470001287689144, 3.782284782004724, -27.744818698957893);
 camera.rotation.set(-3.1193153721818927, -0.017234674190410502, -3.1412086674054494);
 
@@ -29,9 +26,13 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
-// Orbit Controls
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
+// GLTF Loader
+const gltfLoader = new GLTFLoader();
+gltfLoader.load('/model/virrtual_museum/hintze_hall.glb', (gltf) => {
+  console.log('Model loaded!', gltf);
+  const model = gltf.scene;
+  scene.add(model);
+});
 
 // Key state tracking
 const keys = {
@@ -54,50 +55,52 @@ window.addEventListener('keyup', (event) => {
   }
 });
 
-// gltf Loader
-const gltfLoader = new GLTFLoader();
-gltfLoader.load('/model/virrtual_museum/hintze_hall.glb', (gltf) => {
-  console.log('Our model here!', gltf);
-  const model = gltf.scene;
-  scene.add(model);
+// Mouse movement for camera rotation
+let isMouseDown = false;
+window.addEventListener('mousedown', () => (isMouseDown = true));
+window.addEventListener('mouseup', () => (isMouseDown = false));
+window.addEventListener('mousemove', (event) => {
+  if (isMouseDown) {
+    const sensitivity = 0.002; // Adjust sensitivity for mouse movement
+    camera.rotation.y -= event.movementX * sensitivity; // Rotate horizontally
+    camera.rotation.x -= event.movementY * sensitivity; // Rotate vertically
 
-  // GUI Configurator
-  const gui = new lilGui.GUI();
-  gui.add(model.position, 'x').min(-100).max(100).step(0.001).name('Model X Axis Position');
-  gui.add(model.position, 'y').min(-100).max(100).step(0.001).name('Model Y Axis Position');
-  gui.add(model.position, 'z').min(-100).max(100).step(0.001).name('Model Z Axis Position');
+    // Lock vertical rotation to prevent flipping
+    camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+  }
 });
 
-// Camera movement speed
+// Movement speed
 const moveSpeed = 0.1;
 
+// Animation loop
 const animate = () => {
   // Move camera based on key states
   if (keys.ArrowUp) {
-    camera.position.x -= Math.sin(camera.rotation.y) * moveSpeed;
-    camera.position.z -= Math.cos(camera.rotation.y) * moveSpeed;
+    camera.translateZ(-moveSpeed); // Move forward
   }
   if (keys.ArrowDown) {
-    camera.position.x += Math.sin(camera.rotation.y) * moveSpeed;
-    camera.position.z += Math.cos(camera.rotation.y) * moveSpeed;
+    camera.translateZ(moveSpeed); // Move backward
   }
   if (keys.ArrowLeft) {
-    camera.position.x -= Math.cos(camera.rotation.y) * moveSpeed;
-    camera.position.z += Math.sin(camera.rotation.y) * moveSpeed;
+    camera.translateX(-moveSpeed); // Move left
   }
   if (keys.ArrowRight) {
-    camera.position.x += Math.cos(camera.rotation.y) * moveSpeed;
-    camera.position.z -= Math.sin(camera.rotation.y) * moveSpeed;
+    camera.translateX(moveSpeed); // Move right
   }
+
+  // Lock the Y-axis (height) to simulate walking
+  camera.position.y = 3.782284782004724; // Fixed height (initial Y position)
 
   // Render the scene
   renderer.render(scene, camera);
 
-  // Update controls (if needed)
-  controls.update();
+  // Request the next frame
+  requestAnimationFrame(animate);
 };
 
-renderer.setAnimationLoop(animate);
+// Start the animation loop
+animate();
 
 
 // Functions to move and rotate the camera
