@@ -4,7 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 // Canvas
 const canvas = document.querySelector("canvas");
-let flow = 1;
+let floor = 1;
 // Scene
 const scene = new THREE.Scene();
 
@@ -116,7 +116,7 @@ loader.load("https://dummyimage.com/256x64/000/fff&text=Click+to+Go+2nd+Floor", 
 });
 
 function moveToSecondFloor() {
-  flow = 2;
+  floor = 2;
   // Target position
   const targetPosition = new THREE.Vector3(9.079666522864658, 10.012562291007207, 21.758199524172277);
   camera.position.copy(targetPosition);
@@ -126,6 +126,70 @@ function moveToSecondFloor() {
   camera.rotation.copy(targetRotation);
 
   console.log("Moved to 2nd Floor!");
+}
+const buttonGeometry1 = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 32);
+const buttonMaterial1 = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+const buttonMesh1 = new THREE.Mesh(buttonGeometry1, buttonMaterial1);
+buttonMesh1.position.set(9.184899788970773, 10.107772064030083, -13.890553800298669);
+scene.add(buttonMesh1);
+
+
+
+
+
+//move 3rd floor
+// Text Sprite (Label "Click to Go 2nd Floor")
+const loader1 = new THREE.TextureLoader();
+loader1.load("https://dummyimage.com/256x64/000/fff&text=Click+to+Go+2nd+Floor", (texture) => {
+  const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+  const textSprite = new THREE.Sprite(spriteMaterial);
+  textSprite.scale.set(2, 0.5, 1);
+  textSprite.position.set(0.068872, 4.5, 10.368757);
+  scene.add(textSprite);
+});
+function moveToviewpointFloor() {
+  floor = 3;
+  // Target position
+
+  const targetPosition = new THREE.Vector4(0.052213373216613325, 13.464484100702903, -13.617369699260676);
+  camera.position.copy(targetPosition);
+
+  // Target rotation (using Euler angles)
+  const targetRotation = new THREE.Euler(-2.8366870320621915, 0.4778555138641451, 2.997858788877939, "YXZ");
+  camera.rotation.copy(targetRotation);
+
+  console.log("Moved to view point!");
+}
+
+// third flow
+const buttonGeometry2 = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 32);
+const buttonMaterial2 = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+const buttonMesh2= new THREE.Mesh(buttonGeometry2, buttonMaterial2);
+buttonMesh2.position.set(-0.28360587091931094,13.438389428841957,-17.313759336656872);
+scene.add(buttonMesh2);
+
+// Text Sprite (Label "Click to Go 2nd Floor")
+const loader2 = new THREE.TextureLoader();
+loader2.load("https://dummyimage.com/256x64/000/fff&text=Click+to+Go+2nd+Floor", (texture) => {
+  const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+  const textSprite = new THREE.Sprite(spriteMaterial);
+  textSprite.scale.set(2, 0.5, 1);
+  textSprite.position.set(0.068872, 4.5, 10.368757);
+  scene.add(textSprite);
+});
+
+function moveTothirdFloor() {
+  floor= 4;
+  // Target position
+
+  const targetPosition = new THREE.Vector4(-0.03795209431456846, 16.000396016700424, -26.285168181684615);
+  camera.position.copy(targetPosition);
+
+  // Target rotation (using Euler angles)
+  const targetRotation = new THREE.Euler(-0.015464507010603154, 3.0646243991836895, 0, "YXZ");
+  camera.rotation.copy(targetRotation);
+
+  console.log("Moved to 3rd floor!");
 }
 // Raycaster for detecting clicks
 const raycaster = new THREE.Raycaster();
@@ -137,9 +201,15 @@ window.addEventListener("click", (event) => {
 
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObject(buttonMesh);
+  const intersects1 = raycaster.intersectObject(buttonMesh1);
+  const intersects2 = raycaster.intersectObject(buttonMesh2);
 
   if (intersects.length > 0) {
     moveToSecondFloor();
+  }else if(intersects1.length > 0){
+    moveToviewpointFloor()
+  }else if(intersects2.length > 0){
+    moveTothirdFloor()
   }
 });
 // Animation loop
@@ -159,10 +229,14 @@ const animate = () => {
   }
 //console.log(flow)
   // Lock the Y-axis (height) to simulate walking
-  if (flow === 1) {
+  if (floor === 1) {
     camera.position.y = 3.782284782004724; // Ground floor
-  } else {
+  } else if(floor === 2) {
     camera.position.y = 10.012562291007207; // Second floor
+  } else if(floor === 3){
+    camera.position.y = 13.464484100702903;
+  } else if(floor === 4){
+    camera.position.y = 16.000396016700424
   }
   // Render the scene
   renderer.render(scene, camera);
