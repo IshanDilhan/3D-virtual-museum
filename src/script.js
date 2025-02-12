@@ -42,6 +42,7 @@ const keys = {
   ArrowDown: false,
   ArrowLeft: false,
   ArrowRight: false,
+  Escape: false, // Add Escape key to track
 };
 
 // Event listeners for keydown and keyup
@@ -64,8 +65,11 @@ let targetYaw = 0;
 let targetPitch = 0;
 let currentYaw = 0;
 let currentPitch = 0;
+let isMouseMovementEnabled = true; // Track whether mouse movement is enabled
 
 window.addEventListener("mousemove", (event) => {
+  if (!isMouseMovementEnabled) return; // Skip if mouse movement is disabled
+
   targetYaw -= event.movementX * sensitivity;
   targetPitch -= event.movementY * sensitivity;
   targetPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, targetPitch));
@@ -74,6 +78,14 @@ window.addEventListener("mousemove", (event) => {
   const quaternion = new THREE.Quaternion();
   quaternion.setFromEuler(new THREE.Euler(currentPitch, currentYaw, 0, "YXZ"));
   camera.quaternion.copy(quaternion);
+});
+
+// Toggle mouse movement on ESC key press
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    isMouseMovementEnabled = !isMouseMovementEnabled; // Toggle mouse movement state
+    console.log(`Mouse movement ${isMouseMovementEnabled ? "enabled" : "disabled"}`);
+  }
 });
 
 // Movement speed
@@ -141,41 +153,3 @@ const animate = () => {
 
 // Start the animation loop
 animate();
-// Functions to move and rotate the camera
-// function cameraMovement(x, y, z) {
-//   gsap.to(camera.position, {
-//     x,
-//     y,
-//     z,
-//     duration: 3,
-//   });
-// }
-
-// function cameraRotation(x, y, z) {
-//   gsap.to(camera.rotation, {
-//     x,
-//     y,
-//     z,
-//     duration: 3,
-//   });
-// }
-//   window.addEventListener('mouseup', function () {
-//     switch (position) {
-//       case 0:
-//         cameraMovement(-6.0, 1.72, 1.34);
-//         cameraRotation(-2.75, -1.24, -2.77);
-//         position = 1;
-//         break;
-
-//       case 1:
-//         cameraMovement(0.48, 2.09, -2.11);
-//         cameraRotation(-3.12, 0.22, 3.13);
-//         position = 2;
-//         break;
-
-//       case 2:
-//         cameraMovement(-1.49, 1.7, 0.48);
-//         cameraRotation(0.44, 1.43, -0.44);
-//         position = 0;
-//     }
-//   });
